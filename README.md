@@ -1,3 +1,5 @@
+<img src="terminal.gif" alt="terminal" />
+
 # Ilham Maulana Sulaeman
 
 I build tools for learning, thinking, and shipping software with less friction.
