@@ -11,7 +11,7 @@ Right now I am focused on personal knowledge systems, AI-assisted workflows, and
 - [Folio](https://github.com/Imsulaeman/Folio) - an offline study companion with PDF reading, flashcards, notes, EPUB support, pomodoro, and Japanese TTS.
 - [second-brain-site](https://github.com/Imsulaeman/second-brain-site) - a public-facing layer for structured notes and synthesis.
 - [imsulaeman.github.io](https://github.com/Imsulaeman/imsulaeman.github.io) - my personal web presence.
-- [pdf-to-quarkdown](https://github.com/Imsulaeman/pdf-to-quarkdown) - experiments around turning documents into cleaner study and development artifacts.
+
 
 ## Current interests
 
@@ -31,4 +31,3 @@ I care about small working systems, honest iteration, and learning by making thi
 
 ---
 
-If you are building around learning tools, knowledge systems, AI workflows, or student-focused software, I am probably interested.
