@@ -2,32 +2,24 @@
 
 # Ilham Maulana Sulaeman
 
-I build tools for learning, thinking, and shipping software with less friction.
+I read a lot about finance and investing. On the side, I build tools when something bothers me enough.
 
-Right now I am focused on personal knowledge systems, AI-assisted workflows, and study tools that turn scattered material into something usable. I like projects that feel practical first: readable interfaces, offline-friendly tools, clear notes, and systems that help me keep momentum.
+## What I'm building
 
-## What I am building
-
-- [Folio](https://github.com/Imsulaeman/Folio) - an offline study companion with PDF reading, flashcards, notes, EPUB support, pomodoro, and Japanese TTS.
-- [second-brain-site](https://github.com/Imsulaeman/second-brain-site) - a public-facing layer for structured notes and synthesis.
-- [imsulaeman.github.io](https://github.com/Imsulaeman/imsulaeman.github.io) - my personal web presence.
-
+- [imsulaeman.me](https://imsulaeman.me) — personal site
+- [Folio](https://imsulaeman.me/Folio) — offline study companion. Upload PDFs and audio together, study without switching apps, no account.
+- [Second Brain](https://brain.imsulaeman.me) — my personal knowledge garden made public — mental models across investing, learning, thinking, AI, and whatever else I find interesting. Inspired by Karpathy's LLM-wiki idea.
+- [Rutin](https://github.com/Imsulaeman/Rutin) — Android health app with persistent medicine alarms, habit tracking, and wake-up games. Built while managing TB treatment.
 
 ## Current interests
 
-- AI agents and developer workflows
-- Knowledge management and Second Brain systems
-- Frontend interfaces that are simple, calm, and actually usable
-- Study systems for Japanese and technical learning
-- Turning messy inputs into reusable notes, code, or tools
-
-## Tech I use
-
-JavaScript, TypeScript, Python, Astro, HTML/CSS, GitHub, Obsidian, and whatever helps the project become real without unnecessary ceremony.
+- Finance and investing
+- Leverage — money, knowledge, tools as force multipliers
+- Personal knowledge management
+- Building things when I hit a wall
 
 ## How I work
 
-I care about small working systems, honest iteration, and learning by making things visible. My repos are a mix of study, experiments, and tools I use to make my own life easier.
+I identify the problem, design what it should do, and direct the build using AI tools. I decide what to build and why — then make sure it actually works.
 
 ---
-
