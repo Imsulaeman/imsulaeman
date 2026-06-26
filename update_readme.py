@@ -5,9 +5,18 @@ import hashlib
 import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from PIL import Image, ImageDraw, ImageFont
 
 TOKEN = os.environ["GITHUB_TOKEN"]
 GH_HEADERS = {"Authorization": f"bearer {TOKEN}"}
+
+FONT_PATH = "/usr/share/fonts/truetype/liberation/LiberationSans-{}.ttf"
+
+def load_font(style, size):
+    try:
+        return ImageFont.truetype(FONT_PATH.format(style), size)
+    except Exception:
+        return ImageFont.load_default()
 
 
 def fetch_contributions():
@@ -28,63 +37,68 @@ def fetch_contributions():
     return year_total, days[-90:]
 
 
-def render_svg(year_total, days):
+def render_png(year_total, days):
     W, H = 700, 300
-    BG = "#131722"
-    PRIMARY = "#d1d4dc"
-    DIM = "#787b86"
-    GREEN = "#26a69a"
-    RED = "#ef5350"
+    BG      = (19, 23, 34)
+    PRIMARY = (209, 212, 220)
+    DIM     = (120, 123, 134)
+    GREEN   = (38, 166, 154)
+    RED     = (239, 83, 80)
 
-    today = days[-1]
+    today     = days[-1]
     yesterday = days[-2] if len(days) >= 2 else 0
-    delta = today - yesterday
+    delta     = today - yesterday
 
     if delta > 0:
-        t_icon, t_color = "▲", GREEN
+        t_icon, t_color = "^", GREEN
         t_str = f"+{delta}"
     elif delta < 0:
-        t_icon, t_color = "▼", RED
+        t_icon, t_color = "v", RED
         t_str = str(delta)
     else:
         t_icon, t_color = "-", DIM
         t_str = "0"
 
-    pct_str = f" ({abs(delta)/yesterday*100:.1f}%)" if yesterday > 0 and delta != 0 else ""
-    today_text = f"{t_icon} {t_str}{pct_str}  Today"
-    ytd_text = f"▲ {year_total:,}  YTD"
+    pct_str   = f" ({abs(delta)/yesterday*100:.1f}%)" if yesterday > 0 and delta != 0 else ""
+    today_txt = f"{t_icon} {t_str}{pct_str}  Today"
+    ytd_txt   = f"^ {year_total:,}  YTD"
 
-    # Chart area
-    CHART_TOP = 185
-    CHART_BOT = H - 24
+    img  = Image.new("RGB", (W, H), color=BG)
+    draw = ImageDraw.Draw(img)
+
+    f_ticker = load_font("Bold", 12)
+    f_big    = load_font("Bold", 52)
+    f_med    = load_font("Regular", 15)
+    f_small  = load_font("Regular", 10)
+
+    draw.text((24, 20),  "GIT",              font=f_ticker, fill=DIM)
+    draw.text((24, 46),  f"{year_total:,}",  font=f_big,    fill=PRIMARY)
+    draw.text((24, 110), today_txt,           font=f_med,    fill=t_color)
+    draw.text((24, 132), ytd_txt,             font=f_med,    fill=GREEN)
+
+    # Chart
+    CHART_TOP = 170
+    CHART_BOT = H - 22
     ch = CHART_BOT - CHART_TOP
     PX = 24
     cw = W - 2 * PX
-    n = len(days)
+    n  = len(days)
     lo, hi = min(days), max(days)
     rng = (hi - lo) or 1
 
     def sx(i): return PX + (i / (n - 1)) * cw
     def sy(v): return CHART_TOP + ch * 0.05 + ch * 0.9 * (1 - (v - lo) / rng)
 
-    pts = " ".join(f"{sx(i):.1f},{sy(v):.1f}" for i, v in enumerate(days))
-    lx, ly = sx(n - 1), sy(days[-1])
+    pts = [(sx(i), sy(v)) for i, v in enumerate(days)]
+    draw.line(pts, fill=GREEN, width=2)
 
-    F = "font-family=\"Arial,sans-serif\""
+    lx, ly = pts[-1]
+    r = 4
+    draw.ellipse([lx - r, ly - r, lx + r, ly + r], fill=GREEN)
 
-    lines = [
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
-        f'<rect width="{W}" height="{H}" fill="{BG}" rx="8"/>',
-        f'<text x="24" y="40" {F} font-size="13" font-weight="bold" fill="{DIM}">GIT</text>',
-        f'<text x="24" y="102" {F} font-size="54" font-weight="bold" fill="{PRIMARY}">{year_total:,}</text>',
-        f'<text x="24" y="132" {F} font-size="15" fill="{t_color}">{today_text}</text>',
-        f'<text x="24" y="158" {F} font-size="15" fill="{GREEN}">{ytd_text}</text>',
-        f'<polyline points="{pts}" fill="none" stroke="{GREEN}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>',
-        f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="3.5" fill="{GREEN}"/>',
-        f'<text x="24" y="{H-6}" {F} font-size="9" fill="{DIM}">last 90 days</text>',
-        '</svg>',
-    ]
-    return "\n".join(lines)
+    draw.text((24, H - 16), "last 90 days", font=f_small, fill=DIM)
+
+    img.save("chart.png")
 
 
 def fetch_random_note(today):
@@ -125,7 +139,7 @@ def update_readme(title, excerpt, url):
     with open("README.md", "r") as f:
         text = f.read()
 
-    chart_block = '<!-- CHART_START -->\n<img src="chart.svg" alt="contributions" />\n<!-- CHART_END -->'
+    chart_block = '<!-- CHART_START -->\n<img src="chart.png" alt="contributions" />\n<!-- CHART_END -->'
     compounding_block = (
         f'<!-- COMPOUNDING_START -->\n'
         f'> **currently compounding:** [{title}]({url})\n>\n> {excerpt}\n'
@@ -150,9 +164,8 @@ def main():
     today = datetime.now(ZoneInfo("Asia/Jakarta")).date()
     year_total, days = fetch_contributions()
 
-    with open("chart.svg", "w") as f:
-        f.write(render_svg(year_total, days))
-    print("INFO: chart.svg generated")
+    render_png(year_total, days)
+    print("INFO: chart.png generated")
 
     title, excerpt, note_url = fetch_random_note(today)
     print(f"INFO: note: {title} -> {note_url}")
