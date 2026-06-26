@@ -248,20 +248,21 @@ def render_compounding(title, note_type, tags, excerpt, total_notes):
     img.resize((W, H), Image.LANCZOS).convert("RGB").save("compounding.png")
 
 
-def update_readme(note_url):
+def update_readme(note_url, today):
     with open("README.md", "r") as f:
         text = f.read()
 
     text = re.sub(r"\n?<img src=\"terminal\.gif\"[^>]*/>\n?", "\n", text)
 
+    v = today.strftime("%Y%m%d")
     chart_block = (
         "<!-- CHART_START -->\n"
-        "<img src=\"chart.png\" alt=\"contributions\" />\n"
+        f"<img src=\"chart.png?v={v}\" alt=\"contributions\" />\n"
         "<!-- CHART_END -->"
     )
     compounding_block = (
         "<!-- COMPOUNDING_START -->\n"
-        f"<a href=\"{note_url}\"><img src=\"compounding.png\" alt=\"currently compounding\" /></a>\n"
+        f"<a href=\"{note_url}\"><img src=\"compounding.png?v={v}\" alt=\"currently compounding\" /></a>\n"
         "<!-- COMPOUNDING_END -->"
     )
 
@@ -292,7 +293,7 @@ def main():
     render_compounding(title, note_type, tags, excerpt, total_notes)
     print("INFO: compounding.png generated")
 
-    update_readme(note_url)
+    update_readme(note_url, today)
     print("INFO: README.md updated")
 
 
