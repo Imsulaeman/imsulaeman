@@ -29,7 +29,7 @@ I identify the problem, design what it should do, and direct the build using AI 
 ---
 
 <!-- COMPOUNDING_START -->
-> **currently compounding:** Minimax Strategy
+> **currently compounding:** [Minimax Strategy](https://brain.imsulaeman.me/note/concepts/minimax-strategy)
 >
 > Minimax is a game-search strategy for adversarial settings where you assume the opponent will also play intelligently. It chooses the move whose worst plausible reply still leaves...
 <!-- COMPOUNDING_END -->
