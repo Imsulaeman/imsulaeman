@@ -16,8 +16,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt update && sudo apt install -y ffmpeg
-          pip install git+https://github.com/x0rzavi/github-readme-terminal.git@main requests
+          sudo apt update && sudo apt install -y ffmpeg fonts-liberation
+          pip install git+https://github.com/x0rzavi/github-readme-terminal.git@main requests pillow
 
       - name: Generate terminal gif
         run: python main.py
@@ -36,6 +36,6 @@ jobs:
 
       - name: Commit and push
         run: |
-          git add terminal.gif chart.svg README.md
+          git add terminal.gif chart.png README.md
           git -c "user.name=bot" -c "user.email=bot@github.com" commit -m "auto: daily profile update" || echo "nothing to commit"
           git push
