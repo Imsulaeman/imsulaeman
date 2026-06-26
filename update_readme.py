@@ -107,12 +107,17 @@ def render_chart(year_total, days):
 
     CT = 174*S; CB = (H-22)*S; ch = CB - CT
     px = 24*S;  cw = W*S - 2*px
-    n  = len(days); lo, hi = min(days), max(days); rng = (hi - lo) or 1
+
+    chart_days = days[:]
+    if chart_days[-1] == 0 and len(chart_days) >= 2:
+        chart_days[-1] = chart_days[-2]
+
+    n  = len(chart_days); lo, hi = min(chart_days), max(chart_days); rng = (hi - lo) or 1
 
     def sx(i): return px + (i / (n-1)) * cw
     def sy(v): return CT + ch*0.05 + ch*0.9*(1 - (v-lo)/rng)
 
-    pts = [(sx(i), sy(v)) for i, v in enumerate(days)]
+    pts = [(sx(i), sy(v)) for i, v in enumerate(chart_days)]
 
     fill_img = Image.new("RGBA", (W*S, H*S), (0, 0, 0, 0))
     ImageDraw.Draw(fill_img).polygon(
