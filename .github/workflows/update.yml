@@ -1,4 +1,4 @@
-name: Update terminal gif
+name: Update profile
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  update-gif:
+  update:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +17,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update && sudo apt install -y ffmpeg
-          pip install git+https://github.com/x0rzavi/github-readme-terminal.git@main
+          pip install git+https://github.com/x0rzavi/github-readme-terminal.git@main requests
 
       - name: Generate terminal gif
         run: python main.py
@@ -29,8 +29,13 @@ jobs:
           GIFOS_GENERAL_USER_NAME: "imsulaeman"
           GIFOS_FILES_OUTPUT_GIF_NAME: "terminal"
 
+      - name: Generate chart and update README
+        run: python update_readme.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Commit and push
         run: |
-          git add terminal.gif
-          git -c "user.name=bot" -c "user.email=bot@github.com" commit -m "auto: update terminal.gif"
+          git add terminal.gif chart.svg README.md
+          git -c "user.name=bot" -c "user.email=bot@github.com" commit -m "auto: daily profile update" || echo "nothing to commit"
           git push
