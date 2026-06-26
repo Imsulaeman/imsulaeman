@@ -25,7 +25,6 @@ def main():
 
     t.clear_frame()
 
-    # fetch command
     t.gen_prompt(1)
     prompt_col = t.curr_col
     t.clone_frame(8)
@@ -35,7 +34,7 @@ def main():
 
     details = f"""
     \x1b[30; 101m ilham@github \x1b[0m
-    ─────────────────────────
+    -------------------------
     \x1b[96mName    \x1b[0mIlham Maulana Sulaeman
     \x1b[96mFrom    \x1b[0mBandung, Indonesia
     \x1b[96mStudy   \x1b[0mBina Nusantara University
@@ -44,7 +43,7 @@ def main():
     \x1b[96mStars   \x1b[93m{git.total_stargazers}\x1b[0m
     \x1b[96mCommits \x1b[93m{git.total_commits_last_year}\x1b[0m  ({int(year_now) - 1})
     \x1b[96mLangs   \x1b[93m{", ".join(top_langs[:4])}\x1b[0m
-    ─────────────────────────
+    -------------------------
     \x1b[90mReads finance. Builds tools.\x1b[0m
     \x1b[90mThreads: @ulanghidup\x1b[0m
     """
