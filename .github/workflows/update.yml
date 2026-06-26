@@ -26,6 +26,7 @@ jobs:
           GIFOS_GENERAL_FPS: 13
           GIFOS_GENERAL_LOOP_COUNT: 4
           GIFOS_GENERAL_COLOR_SCHEME: "catppuccin-mocha"
+          GIFOS_GENERAL_USER_NAME: "imsulaeman"
           GIFOS_FILES_OUTPUT_GIF_NAME: "terminal"
 
       - name: Commit and push
