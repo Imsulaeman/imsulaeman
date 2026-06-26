@@ -86,12 +86,12 @@ def render_chart(year_total, days, last_year_total):
 
     ytd_delta = year_total - last_year_total
     if last_year_total > 0:
-        ytd_pct = ytd_delta / last_year_total * 100
-        ytd_str = f"+{ytd_pct:.1f}%" if ytd_pct >= 0 else f"{ytd_pct:.1f}%"
-        ytd_up  = ytd_delta >= 0
+        ytd_pct   = ytd_delta / last_year_total * 100
+        ytd_str   = f"+{ytd_pct:.1f}%" if ytd_pct >= 0 else f"{ytd_pct:.1f}%"
+        ytd_up    = ytd_delta >= 0
         ytd_color = GREEN if ytd_delta >= 0 else RED
     else:
-        ytd_str, ytd_up, ytd_color = "n/a", True, DIM
+        ytd_str, ytd_up, ytd_color = f"{year_total:,}", True, GREEN
 
     img  = Image.new("RGBA", (W*S, H*S), BG)
     draw = ImageDraw.Draw(img)
@@ -129,7 +129,8 @@ def render_chart(year_total, days, last_year_total):
     draw.text((r2x + SZ*2 + 5*S, r2y), f"  {ytd_str}  YTD", font=fm, fill=ytd_color)
 
     CT = 174*S; CB = (H-22)*S; ch = CB - CT
-    cw = W*S
+    DOT_R = 4*S
+    cx0 = 0; cx1 = W*S - DOT_R - 2
 
     chart_days = days[:]
     if chart_days[-1] == 0 and len(chart_days) >= 2:
@@ -137,12 +138,12 @@ def render_chart(year_total, days, last_year_total):
 
     n  = len(chart_days); lo, hi = min(chart_days), max(chart_days); rng = (hi - lo) or 1
 
-    def sx(i): return (i / (n-1)) * cw
+    def sx(i): return cx0 + (i / (n-1)) * (cx1 - cx0)
     def sy(v): return CT + ch*0.05 + ch*0.9*(1 - (v-lo)/rng)
 
     pts = [(sx(i), sy(v)) for i, v in enumerate(chart_days)]
 
-    GREEN_DIM = (38, 110, 100)
+    GREEN_DIM = (20, 80, 60)
     for i in range(len(pts) - 1):
         t = i / max(len(pts) - 2, 1)
         rc = int(GREEN_DIM[0] + t * (GREEN[0] - GREEN_DIM[0]))
@@ -152,8 +153,7 @@ def render_chart(year_total, days, last_year_total):
                   fill=(rc, gc, bc), width=3)
 
     lx, ly = int(pts[-1][0]), int(pts[-1][1])
-    r = 4*S
-    draw.ellipse([lx-r, ly-r, lx+r, ly+r], fill=GREEN)
+    draw.ellipse([lx-DOT_R, ly-DOT_R, lx+DOT_R, ly+DOT_R], fill=GREEN)
     draw.text((24*S, (H-16)*S), "last 90 days", font=fs, fill=DIM)
 
     img.resize((W, H), Image.LANCZOS).convert("RGB").save("chart.png")
