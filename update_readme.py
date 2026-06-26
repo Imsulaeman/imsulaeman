@@ -1,6 +1,5 @@
 import os
 import re
-import json
 import random
 import hashlib
 import requests
@@ -14,7 +13,7 @@ GH_HEADERS = {"Authorization": f"bearer {TOKEN}"}
 def fetch_contributions():
     query = """{ user(login: "imsulaeman") { contributionsCollection {
         contributionCalendar { weeks { contributionDays {
-            contributionCount weekday
+            contributionCount
         } } }
     } } }"""
     r = requests.post(
@@ -22,53 +21,42 @@ def fetch_contributions():
         json={"query": query},
         headers=GH_HEADERS,
     )
-    return r.json()["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
+    days = []
+    for week in r.json()["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]:
+        for day in week["contributionDays"]:
+            days.append(day["contributionCount"])
+    return days[-90:]
 
 
-def weeks_to_ohlc(weeks):
-    ohlc = []
-    for week in weeks[-26:]:
-        counts = [d["contributionCount"] for d in week["contributionDays"]]
-        if not counts:
-            continue
-        ohlc.append((counts[0], max(counts), min(counts), counts[-1]))
-    return ohlc
-
-
-def render_svg(ohlc):
+def render_svg(days):
     W, H = 700, 160
     PX, PY = 28, 16
-    cw = H - 2 * PY
-    BG, GREEN, RED, GRID, LABEL = "#131722", "#26a69a", "#ef5350", "#2a2e39", "#787b86"
+    chart_w = W - 2 * PX
+    chart_h = H - 2 * PY - 16  # leave room for label
+    BG, GREEN, DIM, GRID, LABEL = "#131722", "#26a69a", "#2a2e39", "#1e2130", "#787b86"
 
-    all_vals = [v for c in ohlc for v in c]
-    lo, hi = min(all_vals), max(all_vals)
-    rng = (hi - lo) or 1
+    n = len(days)
+    max_val = max(days) or 1
+    slot = chart_w / n
+    bw = max(slot * 0.7, 1.5)
 
-    def sy(v):
-        return PY + cw * 0.05 + cw * 0.9 * (1 - (v - lo) / rng)
-
-    n = len(ohlc)
-    slot = (W - 2 * PX) / n
-    bw = max(slot * 0.5, 3)
-
-    out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}">',
-           f'<rect width="{W}" height="{H}" fill="{BG}" rx="4"/>']
+    out = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}">',
+        f'<rect width="{W}" height="{H}" fill="{BG}" rx="4"/>',
+    ]
 
     for i in range(1, 4):
-        y = PY + cw * i / 4
+        y = PY + chart_h * (1 - i / 4)
         out.append(f'<line x1="{PX}" y1="{y:.1f}" x2="{W-PX}" y2="{y:.1f}" stroke="{GRID}" stroke-width="1"/>')
 
-    out.append(f'<text x="{PX}" y="{H-4}" font-family="monospace" font-size="9" fill="{LABEL}">github contributions — last 26 weeks</text>')
+    out.append(f'<text x="{PX}" y="{H-4}" font-family="monospace" font-size="9" fill="{LABEL}">contributions — last 90 days</text>')
 
-    for i, (o, h, l, c) in enumerate(ohlc):
+    for i, count in enumerate(days):
         xc = PX + (i + 0.5) * slot
-        color = GREEN if c >= o else RED
-        yo, yc, yh, yl = sy(o), sy(c), sy(h), sy(l)
-        top, bot = min(yo, yc), max(yo, yc)
-        bh = max(bot - top, 1.5)
-        out.append(f'<line x1="{xc:.1f}" y1="{yh:.1f}" x2="{xc:.1f}" y2="{yl:.1f}" stroke="{color}" stroke-width="1"/>')
-        out.append(f'<rect x="{xc - bw/2:.1f}" y="{top:.1f}" width="{bw:.1f}" height="{bh:.1f}" fill="{color}"/>')
+        bar_h = max((count / max_val) * chart_h, 1.5)
+        y = PY + chart_h - bar_h
+        color = GREEN if count > 0 else DIM
+        out.append(f'<rect x="{xc - bw/2:.1f}" y="{y:.1f}" width="{bw:.1f}" height="{bar_h:.1f}" fill="{color}" rx="1"/>')
 
     out.append("</svg>")
     return "\n".join(out)
@@ -81,16 +69,20 @@ def fetch_random_note(today):
     for d in ["content/concepts", "content/synthesis"]:
         r = requests.get(f"{api}/repos/imsulaeman/second-brain-site/contents/{d}", headers=h)
         if r.status_code == 200:
-            files += [f["download_url"] for f in r.json() if f["name"].endswith(".md")]
+            for f in r.json():
+                if f["name"].endswith(".md"):
+                    # id = "concepts/5-whys" from path "content/concepts/5-whys.md"
+                    note_id = f["path"].replace("content/", "").replace(".md", "")
+                    files.append((note_id, f["download_url"]))
 
     seed = int(hashlib.md5(str(today).encode()).hexdigest(), 16)
     random.seed(seed)
-    url = random.choice(files)
+    note_id, url = random.choice(files)
 
     content = requests.get(url).text
 
     title_m = re.search(r'^title:\s*["\']?(.+?)["\']?\s*$', content, re.MULTILINE)
-    title = title_m.group(1) if title_m else "Unknown"
+    title = title_m.group(1) if title_m else note_id.split("/")[-1].replace("-", " ").title()
 
     body = re.sub(r'^---.*?---\s*', '', content, flags=re.DOTALL)
     body = re.sub(r'^#.+\n', '', body, flags=re.MULTILINE).strip()
@@ -103,15 +95,22 @@ def fetch_random_note(today):
     if len(excerpt) > 180:
         excerpt = excerpt[:180].rsplit(' ', 1)[0] + '...'
 
-    return title, excerpt
+    url_slug = f"https://brain.imsulaeman.me/note/{note_id}"
+    return title, excerpt, url_slug
 
 
-def update_readme(title, excerpt):
+def update_readme(title, excerpt, url):
     with open("README.md", "r") as f:
         text = f.read()
 
-    chart_block = f'<!-- CHART_START -->\n<img src="./chart.svg" alt="contributions" />\n<!-- CHART_END -->'
-    compounding_block = f'<!-- COMPOUNDING_START -->\n> **currently compounding:** {title}\n>\n> {excerpt}\n<!-- COMPOUNDING_END -->'
+    chart_block = '<!-- CHART_START -->\n<img src="./chart.svg" alt="contributions" />\n<!-- CHART_END -->'
+    compounding_block = (
+        f'<!-- COMPOUNDING_START -->\n'
+        f'> **currently compounding:** [{title}]({url})\n'
+        f'>\n'
+        f'> {excerpt}\n'
+        f'<!-- COMPOUNDING_END -->'
+    )
 
     if "<!-- CHART_START -->" in text:
         text = re.sub(r'<!-- CHART_START -->.*?<!-- CHART_END -->', chart_block, text, flags=re.DOTALL)
@@ -130,15 +129,15 @@ def update_readme(title, excerpt):
 def main():
     today = datetime.now(ZoneInfo("Asia/Jakarta")).date()
 
-    ohlc = weeks_to_ohlc(fetch_contributions())
+    days = fetch_contributions()
     with open("chart.svg", "w") as f:
-        f.write(render_svg(ohlc))
+        f.write(render_svg(days))
     print("INFO: chart.svg generated")
 
-    title, excerpt = fetch_random_note(today)
-    print(f"INFO: note selected: {title}")
+    title, excerpt, url = fetch_random_note(today)
+    print(f"INFO: note selected: {title} -> {url}")
 
-    update_readme(title, excerpt)
+    update_readme(title, excerpt, url)
     print("INFO: README.md updated")
 
 
