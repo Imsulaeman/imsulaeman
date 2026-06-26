@@ -41,20 +41,21 @@ def render_svg(year_total, days):
     delta = today - yesterday
 
     if delta > 0:
-        t_icon, t_color = " & #9650; ", GREEN
+        t_icon, t_color = "▲", GREEN
         t_str = f"+{delta}"
     elif delta < 0:
-        t_icon, t_color = " & #9660; ", RED
+        t_icon, t_color = "▼", RED
         t_str = str(delta)
     else:
-        t_icon, t_color = " & #8212; ", DIM
+        t_icon, t_color = "-", DIM
         t_str = "0"
 
     pct_str = f" ({abs(delta)/yesterday*100:.1f}%)" if yesterday > 0 and delta != 0 else ""
-    today_line = f"{t_str}{pct_str}  Today"
+    today_text = f"{t_icon} {t_str}{pct_str}  Today"
+    ytd_text = f"▲ {year_total:,}  YTD"
 
-    # Chart
-    CHART_TOP = 178
+    # Chart area
+    CHART_TOP = 185
     CHART_BOT = H - 24
     ch = CHART_BOT - CHART_TOP
     PX = 24
@@ -69,39 +70,21 @@ def render_svg(year_total, days):
     pts = " ".join(f"{sx(i):.1f},{sy(v):.1f}" for i, v in enumerate(days))
     lx, ly = sx(n - 1), sy(days[-1])
 
-    F = "font-family=\"'Helvetica Neue',Arial,sans-serif\""
+    F = "font-family=\"Arial,sans-serif\""
 
-    return "\n".join([
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}">',
+    lines = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">',
         f'<rect width="{W}" height="{H}" fill="{BG}" rx="8"/>',
-
-        # Ticker
-        f'<text x="24" y="40" {F} font-size="13" font-weight="700" fill="{DIM}">GIT</text>',
-
-        # Total contributions (big)
-        f'<text x="24" y="100" {F} font-size="54" font-weight="700" fill="{PRIMARY}">{year_total:,}</text>',
-
-        # Today row
-        f'<text x="24" y="130" {F} font-size="15" fill="{t_color}">',
-        f'  <tspan>{t_icon}</tspan>',
-        f'  <tspan dx="4">{today_line}</tspan>',
-        f'</text>',
-
-        # YTD row
-        f'<text x="24" y="156" {F} font-size="15" fill="{GREEN}">',
-        f'  <tspan>&#9650;</tspan>',
-        f'  <tspan dx="4">{year_total:,}  YTD</tspan>',
-        f'</text>',
-
-        # Line chart
+        f'<text x="24" y="40" {F} font-size="13" font-weight="bold" fill="{DIM}">GIT</text>',
+        f'<text x="24" y="102" {F} font-size="54" font-weight="bold" fill="{PRIMARY}">{year_total:,}</text>',
+        f'<text x="24" y="132" {F} font-size="15" fill="{t_color}">{today_text}</text>',
+        f'<text x="24" y="158" {F} font-size="15" fill="{GREEN}">{ytd_text}</text>',
         f'<polyline points="{pts}" fill="none" stroke="{GREEN}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>',
         f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="3.5" fill="{GREEN}"/>',
-
-        # Bottom label
         f'<text x="24" y="{H-6}" {F} font-size="9" fill="{DIM}">last 90 days</text>',
-
         '</svg>',
-    ])
+    ]
+    return "\n".join(lines)
 
 
 def fetch_random_note(today):
@@ -142,7 +125,7 @@ def update_readme(title, excerpt, url):
     with open("README.md", "r") as f:
         text = f.read()
 
-    chart_block = '<!-- CHART_START -->\n<img src="./chart.svg" alt="contributions" />\n<!-- CHART_END -->'
+    chart_block = '<!-- CHART_START -->\n<img src="chart.svg" alt="contributions" />\n<!-- CHART_END -->'
     compounding_block = (
         f'<!-- COMPOUNDING_START -->\n'
         f'> **currently compounding:** [{title}]({url})\n>\n> {excerpt}\n'
