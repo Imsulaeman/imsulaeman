@@ -49,16 +49,27 @@ def wrap_text(draw, text, font, max_w, max_lines=2):
 
 
 def fetch_contributions():
-    query = """{ user(login: "imsulaeman") { contributionsCollection {
-        contributionCalendar { totalContributions weeks { contributionDays { contributionCount } } }
-    } } }"""
-    r = requests.post("https://api.github.com/graphql", json={"query": query}, headers=GH_HEADERS)
-    cal = r.json()["data"]["user"]["contributionsCollection"]["contributionCalendar"]
+    now  = datetime.now(ZoneInfo("Asia/Jakarta"))
+    y    = now.year
+    query = """{{
+      user(login: "imsulaeman") {{
+        thisYear: contributionsCollection(from: "{ty}-01-01T00:00:00Z", to: "{ty}-12-31T23:59:59Z") {{
+          contributionCalendar {{ totalContributions weeks {{ contributionDays {{ contributionCount }} }} }}
+        }}
+        lastYear: contributionsCollection(from: "{ly}-01-01T00:00:00Z", to: "{ly}-12-31T23:59:59Z") {{
+          contributionCalendar {{ totalContributions }}
+        }}
+      }}
+    }}""".format(ty=y, ly=y-1)
+    r   = requests.post("https://api.github.com/graphql", json={"query": query}, headers=GH_HEADERS)
+    data = r.json()["data"]["user"]
+    cal  = data["thisYear"]["contributionCalendar"]
     days = [d["contributionCount"] for w in cal["weeks"] for d in w["contributionDays"]]
-    return cal["totalContributions"], days[-90:]
+    last_year_total = data["lastYear"]["contributionCalendar"]["totalContributions"]
+    return cal["totalContributions"], days[-90:], last_year_total
 
 
-def render_chart(year_total, days):
+def render_chart(year_total, days, last_year_total):
     W, H, S = 700, 300, 2
     today     = days[-1]
     yesterday = days[-2] if len(days) >= 2 else 0
@@ -71,7 +82,16 @@ def render_chart(year_total, days):
     else:
         t_color, t_up, t_str = DIM, None, "0"
 
-    pct = f" ({abs(delta)/yesterday*100:.1f}%)" if yesterday > 0 and delta != 0 else ""
+    t_pct = f" ({abs(delta)/yesterday*100:.1f}%)" if yesterday > 0 and delta != 0 else ""
+
+    ytd_delta = year_total - last_year_total
+    if last_year_total > 0:
+        ytd_pct = ytd_delta / last_year_total * 100
+        ytd_str = f"+{ytd_pct:.1f}%" if ytd_pct >= 0 else f"{ytd_pct:.1f}%"
+        ytd_up  = ytd_delta >= 0
+        ytd_color = GREEN if ytd_delta >= 0 else RED
+    else:
+        ytd_str, ytd_up, ytd_color = "n/a", True, DIM
 
     img  = Image.new("RGBA", (W*S, H*S), BG)
     draw = ImageDraw.Draw(img)
@@ -99,14 +119,17 @@ def render_chart(year_total, days):
         draw.polygon(tri_dn(r1x + SZ, r1y), fill=t_color)
     else:
         draw.text((r1x, r1y), "-", font=fm, fill=t_color)
-    draw.text((r1x + SZ*2 + 5*S, r1y), f"  {t_str}{pct}  Today", font=fm, fill=t_color)
+    draw.text((r1x + SZ*2 + 5*S, r1y), f"  {t_str}{t_pct}  Today", font=fm, fill=t_color)
 
     r2x, r2y = 24*S, 136*S
-    draw.polygon(tri_up(r2x + SZ, r2y), fill=GREEN)
-    draw.text((r2x + SZ*2 + 5*S, r2y), f"  {year_total:,}  YTD", font=fm, fill=GREEN)
+    if ytd_up:
+        draw.polygon(tri_up(r2x + SZ, r2y), fill=ytd_color)
+    else:
+        draw.polygon(tri_dn(r2x + SZ, r2y), fill=ytd_color)
+    draw.text((r2x + SZ*2 + 5*S, r2y), f"  {ytd_str}  YTD vs {datetime.now(ZoneInfo('Asia/Jakarta')).year - 1}", font=fm, fill=ytd_color)
 
     CT = 174*S; CB = (H-22)*S; ch = CB - CT
-    px = 24*S;  cw = W*S - 2*px
+    cw = W*S
 
     chart_days = days[:]
     if chart_days[-1] == 0 and len(chart_days) >= 2:
@@ -114,22 +137,22 @@ def render_chart(year_total, days):
 
     n  = len(chart_days); lo, hi = min(chart_days), max(chart_days); rng = (hi - lo) or 1
 
-    def sx(i): return px + (i / (n-1)) * cw
+    def sx(i): return (i / (n-1)) * cw
     def sy(v): return CT + ch*0.05 + ch*0.9*(1 - (v-lo)/rng)
 
     pts = [(sx(i), sy(v)) for i, v in enumerate(chart_days)]
 
-    fill_img = Image.new("RGBA", (W*S, H*S), (0, 0, 0, 0))
-    ImageDraw.Draw(fill_img).polygon(
-        [(int(x), int(y)) for x, y in pts] + [(int(pts[-1][0]), CB), (int(pts[0][0]), CB)],
-        fill=GREEN_F
-    )
-    img = Image.alpha_composite(img, fill_img)
-    draw = ImageDraw.Draw(img)
+    GREEN_DIM = (38, 80, 76)
+    for i in range(len(pts) - 1):
+        t = i / max(len(pts) - 2, 1)
+        r = int(GREEN_DIM[0] + t * (GREEN[0] - GREEN_DIM[0]))
+        g = int(GREEN_DIM[1] + t * (GREEN[1] - GREEN_DIM[1]))
+        b = int(GREEN_DIM[2] + t * (GREEN[2] - GREEN_DIM[2]))
+        draw.line([(int(pts[i][0]), int(pts[i][1])), (int(pts[i+1][0]), int(pts[i+1][1]))],
+                  fill=(r, g, b), width=2)
 
-    draw.line([(int(x), int(y)) for x, y in pts], fill=GREEN, width=3)
     lx, ly = int(pts[-1][0]), int(pts[-1][1])
-    r = 5*S
+    r = 4*S
     draw.ellipse([lx-r, ly-r, lx+r, ly+r], fill=GREEN)
     draw.text((24*S, (H-16)*S), "last 90 days", font=fs, fill=DIM)
 
@@ -259,8 +282,8 @@ def update_readme(note_url):
 def main():
     today = datetime.now(ZoneInfo("Asia/Jakarta")).date()
 
-    year_total, days = fetch_contributions()
-    render_chart(year_total, days)
+    year_total, days, last_year_total = fetch_contributions()
+    render_chart(year_total, days, last_year_total)
     print("INFO: chart.png generated")
 
     title, note_type, tags, excerpt, total_notes, note_url = fetch_random_note(today)
