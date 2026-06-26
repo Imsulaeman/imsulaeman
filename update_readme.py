@@ -142,14 +142,14 @@ def render_chart(year_total, days, last_year_total):
 
     pts = [(sx(i), sy(v)) for i, v in enumerate(chart_days)]
 
-    GREEN_DIM = (38, 80, 76)
+    GREEN_DIM = (38, 110, 100)
     for i in range(len(pts) - 1):
         t = i / max(len(pts) - 2, 1)
-        r = int(GREEN_DIM[0] + t * (GREEN[0] - GREEN_DIM[0]))
-        g = int(GREEN_DIM[1] + t * (GREEN[1] - GREEN_DIM[1]))
-        b = int(GREEN_DIM[2] + t * (GREEN[2] - GREEN_DIM[2]))
+        rc = int(GREEN_DIM[0] + t * (GREEN[0] - GREEN_DIM[0]))
+        gc = int(GREEN_DIM[1] + t * (GREEN[1] - GREEN_DIM[1]))
+        bc = int(GREEN_DIM[2] + t * (GREEN[2] - GREEN_DIM[2]))
         draw.line([(int(pts[i][0]), int(pts[i][1])), (int(pts[i+1][0]), int(pts[i+1][1]))],
-                  fill=(r, g, b), width=2)
+                  fill=(rc, gc, bc), width=3)
 
     lx, ly = int(pts[-1][0]), int(pts[-1][1])
     r = 4*S
