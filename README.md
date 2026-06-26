@@ -1,5 +1,5 @@
 <!-- CHART_START -->
-<img src="chart.svg" alt="contributions" />
+<img src="chart.png" alt="contributions" />
 <!-- CHART_END -->
 
 <img src="terminal.gif" alt="terminal" />
