@@ -53,14 +53,14 @@ def fetch_contributions():
     y    = now.year
     query = """{{
       user(login: "imsulaeman") {{
-        thisYear: contributionsCollection(from: "{ty}-01-01T00:00:00Z", to: "{ty}-12-31T23:59:59Z") {{
+        thisYear: contributionsCollection {{
           contributionCalendar {{ totalContributions weeks {{ contributionDays {{ contributionCount }} }} }}
         }}
         lastYear: contributionsCollection(from: "{ly}-01-01T00:00:00Z", to: "{ly}-12-31T23:59:59Z") {{
           contributionCalendar {{ totalContributions }}
         }}
       }}
-    }}""".format(ty=y, ly=y-1)
+    }}""".format(ly=y-1)
     r   = requests.post("https://api.github.com/graphql", json={"query": query}, headers=GH_HEADERS)
     data = r.json()["data"]["user"]
     cal  = data["thisYear"]["contributionCalendar"]
@@ -126,7 +126,7 @@ def render_chart(year_total, days, last_year_total):
         draw.polygon(tri_up(r2x + SZ, r2y), fill=ytd_color)
     else:
         draw.polygon(tri_dn(r2x + SZ, r2y), fill=ytd_color)
-    draw.text((r2x + SZ*2 + 5*S, r2y), f"  {ytd_str}  YTD vs {datetime.now(ZoneInfo('Asia/Jakarta')).year - 1}", font=fm, fill=ytd_color)
+    draw.text((r2x + SZ*2 + 5*S, r2y), f"  {ytd_str}  YTD", font=fm, fill=ytd_color)
 
     CT = 174*S; CB = (H-22)*S; ch = CB - CT
     cw = W*S
