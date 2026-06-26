@@ -26,7 +26,7 @@ I read a lot about finance and investing. On the side, I build tools when someth
 I identify the problem, design what it should do, and direct the build using AI tools. I decide what to build and why — then make sure it actually works.
 
 ---
-
+Randomly fetch daily from [Second Brain](https://brain.imsulaeman.me)
 <!-- COMPOUNDING_START -->
 <a href="https://brain.imsulaeman.me/note/concepts/minimax-strategy"><img src="compounding.png" alt="currently compounding" /></a>
 <!-- COMPOUNDING_END -->
