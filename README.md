@@ -1,3 +1,7 @@
+<!-- CHART_START -->
+<img src="./chart.svg" alt="contributions" />
+<!-- CHART_END -->
+
 <img src="terminal.gif" alt="terminal" />
 
 # Ilham Maulana Sulaeman
@@ -23,3 +27,9 @@ I read a lot about finance and investing. On the side, I build tools when someth
 I identify the problem, design what it should do, and direct the build using AI tools. I decide what to build and why — then make sure it actually works.
 
 ---
+
+<!-- COMPOUNDING_START -->
+> **currently compounding:** Minimax Strategy
+>
+> Minimax is a game-search strategy for adversarial settings where you assume the opponent will also play intelligently. It chooses the move whose worst plausible reply still leaves...
+<!-- COMPOUNDING_END -->
