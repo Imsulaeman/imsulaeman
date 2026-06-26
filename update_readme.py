@@ -12,9 +12,7 @@ GH_HEADERS = {"Authorization": f"bearer {TOKEN}"}
 
 def fetch_contributions():
     query = """{ user(login: "imsulaeman") { contributionsCollection {
-        contributionCalendar { weeks { contributionDays {
-            contributionCount
-        } } }
+        contributionCalendar { weeks { contributionDays { contributionCount } } }
     } } }"""
     r = requests.post(
         "https://api.github.com/graphql",
@@ -30,35 +28,35 @@ def fetch_contributions():
 
 def render_svg(days):
     W, H = 700, 160
-    PX, PY = 28, 16
+    PX, PY = 20, 20
     chart_w = W - 2 * PX
-    chart_h = H - 2 * PY - 16  # leave room for label
-    BG, GREEN, DIM, GRID, LABEL = "#131722", "#26a69a", "#2a2e39", "#1e2130", "#787b86"
+    chart_h = H - 2 * PY - 14
+    BG, LINE, DOT, LABEL = "#131722", "#26a69a", "#26a69a", "#787b86"
 
     n = len(days)
     max_val = max(days) or 1
-    slot = chart_w / n
-    bw = max(slot * 0.7, 1.5)
+    min_val = min(days)
+    rng = (max_val - min_val) or 1
+
+    def sx(i):
+        return PX + (i / (n - 1)) * chart_w
+
+    def sy(v):
+        normalized = (v - min_val) / rng
+        return PY + chart_h * 0.05 + chart_h * 0.9 * (1 - normalized)
+
+    # build polyline points
+    points = " ".join(f"{sx(i):.1f},{sy(v):.1f}" for i, v in enumerate(days))
+    last_x, last_y = sx(n - 1), sy(days[-1])
 
     out = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}">',
         f'<rect width="{W}" height="{H}" fill="{BG}" rx="4"/>',
+        f'<polyline points="{points}" fill="none" stroke="{LINE}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>',
+        f'<circle cx="{last_x:.1f}" cy="{last_y:.1f}" r="3" fill="{DOT}"/>',
+        f'<text x="{PX}" y="{H-3}" font-family="monospace" font-size="9" fill="{LABEL}">contributions — last 90 days</text>',
+        '</svg>',
     ]
-
-    for i in range(1, 4):
-        y = PY + chart_h * (1 - i / 4)
-        out.append(f'<line x1="{PX}" y1="{y:.1f}" x2="{W-PX}" y2="{y:.1f}" stroke="{GRID}" stroke-width="1"/>')
-
-    out.append(f'<text x="{PX}" y="{H-4}" font-family="monospace" font-size="9" fill="{LABEL}">contributions — last 90 days</text>')
-
-    for i, count in enumerate(days):
-        xc = PX + (i + 0.5) * slot
-        bar_h = max((count / max_val) * chart_h, 1.5)
-        y = PY + chart_h - bar_h
-        color = GREEN if count > 0 else DIM
-        out.append(f'<rect x="{xc - bw/2:.1f}" y="{y:.1f}" width="{bw:.1f}" height="{bar_h:.1f}" fill="{color}" rx="1"/>')
-
-    out.append("</svg>")
     return "\n".join(out)
 
 
@@ -71,7 +69,6 @@ def fetch_random_note(today):
         if r.status_code == 200:
             for f in r.json():
                 if f["name"].endswith(".md"):
-                    # id = "concepts/5-whys" from path "content/concepts/5-whys.md"
                     note_id = f["path"].replace("content/", "").replace(".md", "")
                     files.append((note_id, f["download_url"]))
 
@@ -95,8 +92,8 @@ def fetch_random_note(today):
     if len(excerpt) > 180:
         excerpt = excerpt[:180].rsplit(' ', 1)[0] + '...'
 
-    url_slug = f"https://brain.imsulaeman.me/note/{note_id}"
-    return title, excerpt, url_slug
+    note_url = f"https://brain.imsulaeman.me/note/{note_id}"
+    return title, excerpt, note_url
 
 
 def update_readme(title, excerpt, url):
