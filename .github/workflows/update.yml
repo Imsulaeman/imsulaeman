@@ -16,18 +16,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          sudo apt update && sudo apt install -y ffmpeg fonts-liberation
-          pip install git+https://github.com/x0rzavi/github-readme-terminal.git@main requests pillow
-
-      - name: Generate terminal gif
-        run: python main.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GIFOS_GENERAL_FPS: 13
-          GIFOS_GENERAL_LOOP_COUNT: 4
-          GIFOS_GENERAL_COLOR_SCHEME: "catppuccin-mocha"
-          GIFOS_GENERAL_USER_NAME: "imsulaeman"
-          GIFOS_FILES_OUTPUT_GIF_NAME: "terminal"
+          sudo apt update && sudo apt install -y fonts-liberation
+          pip install requests pillow
 
       - name: Generate chart and update README
         run: python update_readme.py
@@ -36,6 +26,6 @@ jobs:
 
       - name: Commit and push
         run: |
-          git add terminal.gif chart.png README.md
+          git add chart.png README.md
           git -c "user.name=bot" -c "user.email=bot@github.com" commit -m "auto: daily profile update" || echo "nothing to commit"
           git push
