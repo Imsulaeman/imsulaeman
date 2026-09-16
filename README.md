@@ -1,5 +1,5 @@
 <!-- CHART_START -->
-<img src="chart.png?v=20260915" alt="contributions" />
+<img src="chart.png?v=20260916" alt="contributions" />
 <!-- CHART_END -->
 
 
@@ -28,5 +28,5 @@ I identify the problem, design what it should do, and direct the build using AI 
 ---
 Randomly fetch daily from [Second Brain](https://brain.imsulaeman.me)
 <!-- COMPOUNDING_START -->
-<a href="https://brain.imsulaeman.me/note/concepts/reading-for-information-vs-reading-for-understanding"><img src="compounding.png?v=20260915" alt="currently compounding" /></a>
+<a href="https://brain.imsulaeman.me/note/concepts/arouse-an-eager-want"><img src="compounding.png?v=20260916" alt="currently compounding" /></a>
 <!-- COMPOUNDING_END -->
