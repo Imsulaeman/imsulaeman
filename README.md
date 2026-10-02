@@ -1,5 +1,5 @@
 <!-- CHART_START -->
-<img src="chart.png?v=20261001" alt="contributions" />
+<img src="chart.png?v=20261002" alt="contributions" />
 <!-- CHART_END -->
 
 
@@ -28,5 +28,5 @@ I identify the problem, design what it should do, and direct the build using AI 
 ---
 Randomly fetch daily from [Second Brain](https://brain.imsulaeman.me)
 <!-- COMPOUNDING_START -->
-<a href="https://brain.imsulaeman.me/note/concepts/cooperative-vs-noncooperative-games"><img src="compounding.png?v=20261001" alt="currently compounding" /></a>
+<a href="https://brain.imsulaeman.me/note/concepts/laws-as-approximations"><img src="compounding.png?v=20261002" alt="currently compounding" /></a>
 <!-- COMPOUNDING_END -->
