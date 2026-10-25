@@ -1,5 +1,5 @@
 <!-- CHART_START -->
-<img src="chart.png?v=20261024" alt="contributions" />
+<img src="chart.png?v=20261025" alt="contributions" />
 <!-- CHART_END -->
 
 
@@ -28,5 +28,5 @@ I identify the problem, design what it should do, and direct the build using AI 
 ---
 Randomly fetch daily from [Second Brain](https://brain.imsulaeman.me)
 <!-- COMPOUNDING_START -->
-<a href="https://brain.imsulaeman.me/note/concepts/efficient-yield-hypothesis"><img src="compounding.png?v=20261024" alt="currently compounding" /></a>
+<a href="https://brain.imsulaeman.me/note/concepts/event-based-time"><img src="compounding.png?v=20261025" alt="currently compounding" /></a>
 <!-- COMPOUNDING_END -->
